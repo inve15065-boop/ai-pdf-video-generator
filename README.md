@@ -226,4 +226,4 @@ For issues and questions, please open a GitHub issue or contact the development 
 
 ---
 
-Made with ❤️ using AI and modern web technologies
+Made with ❤️ using AI and modern web technologies"# ai-pdf-video-generator" 
