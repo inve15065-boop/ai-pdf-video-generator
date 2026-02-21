@@ -96,11 +96,31 @@ function App() {
             <h1 className="app-title">AI PDF to Video Generator</h1>
             <p className="app-subtitle">Transform your PDFs into engaging videos with AI</p>
             
-            <Paper elevation={3} sx={{ p: 3, mt: 4, backgroundColor: 'rgba(30, 30, 30, 0.9)' }}>
+            <Paper elevation={3} sx={{ p: 3, mt: 4, backgroundColor: 'rgba(30, 30, 30, 0.95)', backdropFilter: 'blur(20px)', borderRadius: 4, border: '1px solid rgba(187, 134, 252, 0.2)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)' }}>
               <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-                {steps.map((label) => (
+                {steps.map((label, index) => (
                   <Step key={label}>
-                    <StepLabel>{label}</StepLabel>
+                    <StepLabel 
+                      sx={{
+                        '& .MuiStepLabel-label': {
+                          color: index <= activeStep ? '#f093fb' : 'rgba(255, 255, 255, 0.5)',
+                          fontWeight: index === activeStep ? 600 : 400,
+                        },
+                        '& .MuiStepIcon-root': {
+                          color: index < activeStep ? '#03dac6' : index === activeStep ? '#bb86fc' : 'rgba(255, 255, 255, 0.3)',
+                          fontSize: '2rem',
+                        },
+                        '& .MuiStepIcon-root.Mui-active': {
+                          color: '#f093fb',
+                          filter: 'drop-shadow(0 0 8px rgba(240, 147, 251, 0.6))',
+                        },
+                        '& .MuiStepIcon-root.Mui-completed': {
+                          color: '#03dac6',
+                        },
+                      }}
+                    >
+                      {label}
+                    </StepLabel>
                   </Step>
                 ))}
               </Stepper>

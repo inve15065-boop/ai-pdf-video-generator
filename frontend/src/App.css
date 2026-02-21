@@ -1,31 +1,67 @@
 .app-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
   padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  animation: float 20s ease-in-out infinite;
 }
 
 .app-title {
   text-align: center;
   color: white;
-  font-size: 3rem;
-  font-weight: bold;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 3.5rem;
+  font-weight: 900;
+  text-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.5),
+    0 0 40px rgba(102, 126, 234, 0.5),
+    2px 2px 4px rgba(0, 0, 0, 0.3);
   margin-bottom: 10px;
-  animation: fadeInDown 1s ease-in;
+  animation: fadeInDown 1s ease-in, glow 3s ease-in-out infinite;
+  letter-spacing: 2px;
+  background: linear-gradient(45deg, #fff, #f093fb, #fff);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .app-subtitle {
   text-align: center;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1.2rem;
-  margin-bottom: 20px;
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.3rem;
+  margin-bottom: 30px;
   animation: fadeInUp 1s ease-in;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  font-weight: 300;
+  letter-spacing: 1px;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 @keyframes fadeInDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-30px);
   }
   to {
     opacity: 1;
@@ -36,12 +72,32 @@
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes glow {
+  0%, 100% {
+    text-shadow: 
+      0 0 20px rgba(255, 255, 255, 0.5),
+      0 0 40px rgba(102, 126, 234, 0.5),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    text-shadow: 
+      0 0 30px rgba(255, 255, 255, 0.8),
+      0 0 60px rgba(240, 147, 251, 0.8),
+      2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 }
 
 @keyframes shimmer {
@@ -55,6 +111,24 @@
 
 .shimmer {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(to right, #667eea 0%, #764ba2 50%, #667eea 100%);
+  background: linear-gradient(to right, #667eea 0%, #764ba2 50%, #f093fb 100%);
   background-size: 1000px 100%;
+}
+
+/* Floating particles effect */
+@keyframes particles {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(100px);
+    opacity: 0;
+  }
 }

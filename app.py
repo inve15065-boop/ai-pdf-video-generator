@@ -11,7 +11,17 @@ import logging
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"],
+        "max_age": 3600
+    }
+})
+
+# Configure max upload size (50MB)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
