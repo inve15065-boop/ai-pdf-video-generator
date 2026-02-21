@@ -134,5 +134,10 @@ def get_status(session_id):
         logger.error(f"Status error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/")
+def home():
+    return "Backend is running"
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
