@@ -1,15 +1,32 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Box, Button, Typography, CircularProgress, Alert } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
+const API_URL = 'https://pdf-video-backend.onrender.com';
 function UploadStep({ onNext, setSessionId, setPdfFile, setRequirements }) {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
+  const [backendStatus, setBackendStatus] = useState('checking');
+
+  // Check backend health on mount
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        console.log('Checking backend at:', API_URL);
+        const response = await axios.get(`${API_URL}/health`, { timeout: 10000 });
+        console.log('Backend response:', response.data);
+        setBackendStatus('online');
+      } catch (err) {
+        console.error('Backend check failed:', err);
+        setBackendStatus('offline');
+        setError(`Cannot connect to backend at ${API_URL}. The server may be starting up (this can take 30-60 seconds on first request).`);
+      }
+    };
+    checkBackend();
+  }, []);
 
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
@@ -41,6 +58,7 @@ function UploadStep({ onNext, setSessionId, setPdfFile, setRequirements }) {
     setError(null);
 
     try {
+      console.log('Uploading to:', `${API_URL}/upload`);
       const formData = new FormData();
       formData.append('pdf', file);
       formData.append('requirements', 'Create an engaging video');
@@ -49,20 +67,36 @@ function UploadStep({ onNext, setSessionId, setPdfFile, setRequirements }) {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 60000, // 60 second timeout
+        timeout: 120000, // 2 minute timeout for first request (backend may be waking up)
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log('Upload progress:', percentCompleted + '%');
+        },
       });
 
+      console.log('Upload response:', response.data);
       setSessionId(response.data.session_id);
       setPdfFile(file);
       setRequirements(response.data.requirements);
       onNext();
     } catch (err) {
       console.error('Upload error:', err);
-      const errorMessage = err.response?.data?.error 
-        || err.message 
-        || 'Upload failed. Please check your connection and try again.';
+      let errorMessage = 'Upload failed. ';
+      
+      if (err.code === 'ECONNABORTED') {
+        errorMessage += 'Request timeout. The backend server may be starting up. Please wait 30 seconds and try again.';
+      } else if (err.code === 'ERR_NETWORK') {
+        errorMessage += `Cannot connect to backend at ${API_URL}. Please check if the backend is running.`;
+      } else if (err.response) {
+        errorMessage += err.response.data?.error || `Server error: ${err.response.status}`;
+      } else if (err.request) {
+        errorMessage += 'No response from server. The backend may be starting up (can take 30-60 seconds on free tier).';
+      } else {
+        errorMessage += err.message;
+      }
+      
       setError(errorMessage);
     } finally {
       setUploading(false);
@@ -71,6 +105,24 @@ function UploadStep({ onNext, setSessionId, setPdfFile, setRequirements }) {
 
   return (
     <Box sx={{ textAlign: 'center' }}>
+      {backendStatus === 'checking' && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          🔍 Checking backend connection... Backend URL: {API_URL}
+        </Alert>
+      )}
+      
+      {backendStatus === 'offline' && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          ⚠️ Backend is starting up. This can take 30-60 seconds on first request. Please wait and try again.
+        </Alert>
+      )}
+      
+      {backendStatus === 'online' && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          ✅ Connected to backend successfully!
+        </Alert>
+      )}
+
       <Box
         {...getRootProps()}
         sx={{
