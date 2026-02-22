@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 from services.pdf_processor import PDFProcessor
 from services.ai_transformer import AITransformer
-from services.simple_video_generator import SimpleVideoGenerator
+from services.video_generator import VideoGenerator  # Back to real video generator
 import uuid
 import logging
 
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 # Initialize services
 pdf_processor = PDFProcessor()
 ai_transformer = AITransformer()
-video_generator = SimpleVideoGenerator()  # Use simple generator
+video_generator = VideoGenerator()  # Real video generator
 
 # Ensure directories exist
 os.makedirs('uploads', exist_ok=True)
@@ -143,19 +143,12 @@ def process_pdf(session_id):
 @app.route('/download/<session_id>', methods=['GET'])
 def download_video(session_id):
     try:
-        # Try MP4 first, then PNG
         video_path = f"outputs/{session_id}.mp4"
-        if not os.path.exists(video_path):
-            video_path = f"outputs/{session_id}.png"
         
         if not os.path.exists(video_path):
             return jsonify({"error": "Video not found"}), 404
         
-        # Determine file extension
-        file_ext = video_path.split('.')[-1]
-        download_name = f"generated_video_{session_id}.{file_ext}"
-        
-        return send_file(video_path, as_attachment=True, download_name=download_name)
+        return send_file(video_path, as_attachment=True, download_name=f"generated_video_{session_id}.mp4")
     
     except Exception as e:
         logger.error(f"Download error: {str(e)}")
@@ -165,15 +158,12 @@ def download_video(session_id):
 def get_status(session_id):
     try:
         pdf_path = f"uploads/{session_id}.pdf"
-        video_path_mp4 = f"outputs/{session_id}.mp4"
-        video_path_png = f"outputs/{session_id}.png"
-        
-        video_ready = os.path.exists(video_path_mp4) or os.path.exists(video_path_png)
+        video_path = f"outputs/{session_id}.mp4"
         
         status = {
             "session_id": session_id,
             "pdf_uploaded": os.path.exists(pdf_path),
-            "video_ready": video_ready
+            "video_ready": os.path.exists(video_path)
         }
         
         return jsonify(status)
