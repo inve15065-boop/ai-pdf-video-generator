@@ -9,6 +9,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Button,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
@@ -32,42 +33,74 @@ function ProcessingStep({ onNext, sessionId, requirements }) {
   useEffect(() => {
     const processVideo = async () => {
       try {
+        console.log('Starting video processing for session:', sessionId);
+        
         // Simulate step progression
         const stepInterval = setInterval(() => {
           setCurrentStep((prev) => {
             if (prev < processingSteps.length - 1) {
               return prev + 1;
             }
-            clearInterval(stepInterval);
             return prev;
           });
-        }, 2000);
+        }, 3000); // Slower progression
 
         // Update progress
         const progressInterval = setInterval(() => {
           setProgress((prev) => {
-            if (prev >= 100) {
-              clearInterval(progressInterval);
-              return 100;
+            if (prev >= 95) { // Stop at 95% until API responds
+              return 95;
             }
-            return prev + 2;
+            return prev + 1;
           });
-        }, 200);
+        }, 300);
 
-        // Call backend API
+        // Call backend API with longer timeout
         const response = await axios.post(
           `${API_URL}/process/${sessionId}`,
           { requirements },
-          { headers: { 'Content-Type': 'application/json' } }
+          { 
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 180000, // 3 minute timeout for processing
+          }
         );
+
+        console.log('Processing response:', response.data);
+
+        // Clear intervals
+        clearInterval(stepInterval);
+        clearInterval(progressInterval);
+
+        // Complete progress
+        setProgress(100);
+        setCurrentStep(processingSteps.length - 1);
 
         if (response.data.status === 'completed') {
           setTimeout(() => {
             onNext();
           }, 1000);
+        } else {
+          setError('Processing completed but status is unclear. Please check the download page.');
+          setTimeout(() => {
+            onNext();
+          }, 2000);
         }
       } catch (err) {
-        setError(err.response?.data?.error || 'Processing failed. Please try again.');
+        console.error('Processing error:', err);
+        
+        let errorMessage = 'Processing failed. ';
+        
+        if (err.code === 'ECONNABORTED') {
+          errorMessage += 'Request timeout. The video processing is taking longer than expected. This might be due to a large PDF or complex content.';
+        } else if (err.response) {
+          errorMessage += err.response.data?.error || `Server error: ${err.response.status}`;
+        } else if (err.request) {
+          errorMessage += 'No response from server. The backend may be processing your request.';
+        } else {
+          errorMessage += err.message;
+        }
+        
+        setError(errorMessage);
         setProgress(0);
       }
     };
@@ -84,9 +117,35 @@ function ProcessingStep({ onNext, sessionId, requirements }) {
       </Typography>
 
       {error ? (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
+        <Box>
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Common issues:
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, textAlign: 'left', maxWidth: 600, mx: 'auto' }}>
+            • Backend may be processing (free tier can be slow)
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1, textAlign: 'left', maxWidth: 600, mx: 'auto' }}>
+            • Large PDFs take longer to process
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'left', maxWidth: 600, mx: 'auto' }}>
+            • OpenAI API may be rate limited
+          </Typography>
+          <Button
+            variant="contained"
+            onClick={() => window.location.reload()}
+            sx={{
+              background: 'linear-gradient(45deg, #bb86fc 30%, #03dac6 90%)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #9965f4 30%, #02b8a3 90%)',
+              },
+            }}
+          >
+            Retry
+          </Button>
+        </Box>
       ) : (
         <>
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>

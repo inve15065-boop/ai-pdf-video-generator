@@ -83,29 +83,51 @@ def process_pdf(session_id):
         pdf_path = f"uploads/{session_id}.pdf"
         
         if not os.path.exists(pdf_path):
-            return jsonify({"error": "PDF not found"}), 404
+            logger.error(f"PDF not found for session: {session_id}")
+            return jsonify({"error": "PDF not found. Please upload again."}), 404
         
         # Get user requirements
-        data = request.get_json()
-        requirements = data.get('requirements', '')
+        data = request.get_json() or {}
+        requirements = data.get('requirements', 'Create an engaging video')
+        
+        logger.info(f"Starting processing for session: {session_id}")
         
         # Step 1: Extract content from PDF
-        logger.info(f"Processing PDF: {session_id}")
-        extracted_content = pdf_processor.extract_content(pdf_path)
+        logger.info(f"Step 1/3: Extracting content from PDF")
+        try:
+            extracted_content = pdf_processor.extract_content(pdf_path)
+            logger.info(f"Extracted {len(extracted_content.get('content', []))} pages")
+        except Exception as e:
+            logger.error(f"PDF extraction failed: {str(e)}")
+            return jsonify({"error": f"Failed to extract PDF content: {str(e)}"}), 500
         
         # Step 2: Transform content using AI
-        logger.info(f"Transforming content with AI: {session_id}")
-        transformed_content = ai_transformer.transform_content(
-            extracted_content, 
-            requirements
-        )
+        logger.info(f"Step 2/3: Transforming content with AI")
+        try:
+            transformed_content = ai_transformer.transform_content(
+                extracted_content, 
+                requirements
+            )
+            logger.info("AI transformation completed")
+        except Exception as e:
+            logger.error(f"AI transformation failed: {str(e)}")
+            # Continue with fallback even if AI fails
+            transformed_content = {
+                'script': 'Generated video from PDF',
+                'source_pages': extracted_content.get('metadata', {}).get('num_pages', 0)
+            }
         
         # Step 3: Generate video
-        logger.info(f"Generating video: {session_id}")
-        video_path = video_generator.create_video(
-            transformed_content, 
-            session_id
-        )
+        logger.info(f"Step 3/3: Generating video")
+        try:
+            video_path = video_generator.create_video(
+                transformed_content, 
+                session_id
+            )
+            logger.info(f"Video generated successfully: {video_path}")
+        except Exception as e:
+            logger.error(f"Video generation failed: {str(e)}")
+            return jsonify({"error": f"Failed to generate video: {str(e)}"}), 500
         
         return jsonify({
             "session_id": session_id,
@@ -115,8 +137,8 @@ def process_pdf(session_id):
         })
     
     except Exception as e:
-        logger.error(f"Processing error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Processing error: {str(e)}", exc_info=True)
+        return jsonify({"error": f"Processing failed: {str(e)}"}), 500
 
 @app.route('/download/<session_id>', methods=['GET'])
 def download_video(session_id):
