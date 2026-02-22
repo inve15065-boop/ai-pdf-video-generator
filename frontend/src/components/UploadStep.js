@@ -4,7 +4,7 @@ import { useDropzone } from 'react-dropzone';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import axios from 'axios';
 
-const API_URL = 'https://pdf-video-backend.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://pdf-video-backend.onrender.com';
 function UploadStep({ onNext, setSessionId, setPdfFile, setRequirements }) {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);

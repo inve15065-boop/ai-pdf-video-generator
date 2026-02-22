@@ -62,7 +62,7 @@ yarn-error.log*
 # Frontend build
 frontend/build/
 frontend/.env.local
-frontend/.env.production.local
+frontend/.env.*.local
 
 # Logs
 *.log

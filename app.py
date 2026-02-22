@@ -11,11 +11,17 @@ import logging
 load_dotenv()
 
 app = Flask(__name__)
+
+# Get allowed origins from environment or use defaults
+ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS', '*').split(',')
+
 CORS(app, resources={
     r"/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"],
+        "origins": "*",  # Allow all origins for deployment
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Type"],
+        "supports_credentials": False,
         "max_age": 3600
     }
 })
