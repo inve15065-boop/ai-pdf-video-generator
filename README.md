@@ -16,11 +16,16 @@ Transform your PDF documents into engaging videos with AI-powered content analys
 
 - **Backend**: Python 3.11, Flask
 - **AI/ML**: OpenAI GPT-3.5
-- **PDF Processing**: PyPDF2
+- **PDF Processing**: PyPDF2, pdf2image
 - **Video Generation**: MoviePy, Pillow
-- **Text-to-Speech**: gTTS
 - **Frontend**: React.js 18, Material-UI
-- **Deployment**: Docker, Docker Compose
+- **Deployment**: Docker, Render, Vercel
+
+## 🚀 Live Demo
+
+- **Frontend**: https://ai-pdf-video-generator.vercel.app
+- **Backend**: https://pdf-video-backend.onrender.com
+- **Health Check**: https://pdf-video-backend.onrender.com/health
 
 ## 🚀 Quick Start
 

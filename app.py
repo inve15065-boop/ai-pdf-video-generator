@@ -143,12 +143,24 @@ def process_pdf(session_id):
 @app.route('/download/<session_id>', methods=['GET'])
 def download_video(session_id):
     try:
+        # Try MP4 first, then PNG as fallback
         video_path = f"outputs/{session_id}.mp4"
+        if not os.path.exists(video_path):
+            video_path = f"outputs/{session_id}.png"
         
         if not os.path.exists(video_path):
             return jsonify({"error": "Video not found"}), 404
         
-        return send_file(video_path, as_attachment=True, download_name=f"generated_video_{session_id}.mp4")
+        # Determine file extension and MIME type
+        file_ext = video_path.split('.')[-1]
+        if file_ext == 'mp4':
+            mimetype = 'video/mp4'
+            download_name = f"generated_video_{session_id}.mp4"
+        else:
+            mimetype = 'image/png'
+            download_name = f"generated_image_{session_id}.png"
+        
+        return send_file(video_path, as_attachment=True, download_name=download_name, mimetype=mimetype)
     
     except Exception as e:
         logger.error(f"Download error: {str(e)}")
@@ -159,11 +171,13 @@ def get_status(session_id):
     try:
         pdf_path = f"uploads/{session_id}.pdf"
         video_path = f"outputs/{session_id}.mp4"
+        png_path = f"outputs/{session_id}.png"
         
         status = {
             "session_id": session_id,
             "pdf_uploaded": os.path.exists(pdf_path),
-            "video_ready": os.path.exists(video_path)
+            "video_ready": os.path.exists(video_path) or os.path.exists(png_path),
+            "file_type": "mp4" if os.path.exists(video_path) else ("png" if os.path.exists(png_path) else "none")
         }
         
         return jsonify(status)
