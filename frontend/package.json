@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Frontend for AI PDF to Video Generator",
   "main": "src/index.js",
+  "homepage": ".",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -15,7 +16,6 @@
     "react-scripts": "5.0.1",
     "axios": "^1.5.0",
     "react-dropzone": "^14.2.3",
-    "react-router-dom": "^6.8.0",
     "@mui/material": "^5.14.0",
     "@mui/icons-material": "^5.14.0",
     "@emotion/react": "^11.11.0",
